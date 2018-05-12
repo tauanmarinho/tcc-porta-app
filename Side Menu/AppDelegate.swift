@@ -17,9 +17,11 @@ class AppDelegate: UIResponder, UIApplicationDelegate {
     
     func application(_ application: UIApplication, didFinishLaunchingWithOptions launchOptions: [UIApplicationLaunchOptionsKey: Any]?) -> Bool {
         
-        let saveToken: String? = KeychainWrapper.standard.string(forKey: "tokenResult")
+        //let saveToken: String? = KeychainWrapper.standard.string(forKey: "tokenResult")
         
-        if saveToken != nil {
+        let accessResult: Bool? = KeychainWrapper.standard.bool(forKey: "accessResult")
+        
+        if accessResult == true {
             let mainstoryboard:UIStoryboard = UIStoryboard(name: "Main", bundle: nil)
             let homepage = mainstoryboard.instantiateViewController(withIdentifier: "ShowMainContainer") as! ContainerVC
             self.window?.rootViewController = homepage

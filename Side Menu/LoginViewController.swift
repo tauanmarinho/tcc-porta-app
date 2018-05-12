@@ -20,6 +20,9 @@ class LoginViewController: UIViewController {
     @IBOutlet weak var passwordTextField: UITextField!
     let user = User()
     var confirmado:Int = 0
+    var statusConnection:String = ""
+    var acesso:Bool = false
+    
     override func viewDidLoad() {
         super.viewDidLoad()
         
@@ -48,34 +51,42 @@ class LoginViewController: UIViewController {
     }
     
     func getToken(url: String, parameters: [String: String]){
+        
         Alamofire.request(url, method: .post, parameters: parameters, encoding: JSONEncoding.default).responseJSON {
             response in
             let dataJSON : JSON = JSON(response.result.value!)
+            
             if response.result.isSuccess {
                 print("sucess")
                 print(dataJSON)
-                self.user.userToken =  self.updateToken(json: dataJSON)
+                self.acesso = self.updateToken(json: dataJSON)
             } else {
-                print("errors")
+                print("Error \(String(describing: response.result.error))")
+                self.statusConnection = "Connection issues"
+                self.actionLogin(mensagem: self.statusConnection)
             }
         }
     }
     
-    func updateToken (json: JSON) -> String{
+    func updateToken (json: JSON) -> Bool{
         var tokenResult:String = ""
+        var accessResult:Bool = false
         if json["data"]["token"].exists() == true {
             tokenResult = json["data"]["token"].description
             let saveToken: Bool = KeychainWrapper.standard.set(tokenResult, forKey: "tokenResult")
+            accessResult = true
+            let access: Bool = KeychainWrapper.standard.set(accessResult, forKey: "accessResult")
+            print (access)
             print(saveToken)
-            //print(tokenResult)
-        } else if json["data"]["errors"].exists() == true {
-            tokenResult = json["data"]["errors"].description
-            tokenResult = "error"
+            print(tokenResult)
+            return true
         } else {
-            tokenResult = "error"
+            accessResult = false
+            let access: Bool = KeychainWrapper.standard.set(accessResult, forKey: "accessResult")
+            print (access)
+            self.actionLogin(mensagem: "Erro na senha/e-mail")
+            return false
         }
-        print(tokenResult)
-        return tokenResult
     }
     
     
@@ -97,13 +108,13 @@ class LoginViewController: UIViewController {
         getToken(url: URL_LOGIN, parameters: parameters)
         //print(user.userToken)
         
-        if user.userToken != "error" {
+        if acesso != false {
             print("Acesso liberado" + user.userToken)
             user.isLogin = true
             self.dismiss(animated: true, completion: nil)
             self.viewDidAppear(true)
         } else {
-            print("Acesso recusado" + user.userToken)
+            print("Acesso recusado")
         }
         
     }
