@@ -12,10 +12,10 @@ import UIKit
 
 class RegisterTableViewController: UITableViewController, UISearchBarDelegate {
     
-    var nomes: [String] = ["Tauan Marinho", "Tiago Maniane", "Luiz Kim", "Tiago Faxina"]
-    var portas: [String] = ["Porta 1", "Porta 11", "Porta 2", "Porta 11"]
-    var horario: [String] = ["10:17:54", "13:13:54", "08:57:54", "16:51:22"]
-    let URL_LOGS: String = "https://portaeletronica-api.herokuapp.com/api/logs?page=1&linesPerPage=10&direction=ASC"
+    var nomes: [String] = []
+    var horario: [String] = []
+    let ordem: String = "DESC"
+    let URL_LOGS: String = "https://portaeletronica-api.herokuapp.com/api/logs?page=1&linesPerPage=20&direction="
     
     @IBOutlet var table: UITableView!
     var currentNomes = [String]()
@@ -23,34 +23,45 @@ class RegisterTableViewController: UITableViewController, UISearchBarDelegate {
 
     override func viewDidLoad() {
         super.viewDidLoad()
-        getData(url: URL_LOGS)
-        currentNomes = nomes
-        setSearchBar()
+
+        let saveToken: String? = KeychainWrapper.standard.string(forKey: "tokenResult")
+        let headers = [
+            "Authorization": "Bearer " + saveToken!
+        ]
+        print("Enviado request")
+        Alamofire.request(URL_LOGS + ordem, method: .get, encoding: JSONEncoding.default, headers: headers).responseJSON {
+            response in
+            
+            if response.result.isSuccess {
+                print("sucess request")
+                if let value = response.result.value {
+                    let dataJSON = JSON(value)
+                    
+                    print(dataJSON)
+                    
+                    for x in 0..<dataJSON["content"].count {
+                        self.horario.append(dataJSON["content"][x]["acao"].stringValue)
+                        self.nomes.append(dataJSON["content"][x]["dataHora"].stringValue)
+                    }
+                    
+                    print("recebido e setado")
+                    
+                    print(self.nomes)
+                    print(self.horario)
+                    self.currentNomes = self.nomes
+                    self.setSearchBar()
+                    self.table.reloadData()
+                }
+            } else {
+                print("error request")
+            }
+        }
+        
         // Uncomment the following line to preserve selection between presentations
         // self.clearsSelectionOnViewWillAppear = false
 
         // Uncomment the following line to display an Edit button in the navigation bar for this view controller.
         // self.navigationItem.rightBarButtonItem = self.editButtonItem
-    }
-    
-    func getData(url: String){
-        //let list: Array<JSON> = json["list"].arrayValue
-        let saveToken: String? = KeychainWrapper.standard.string(forKey: "tokenResult")
-        print(saveToken!)
-        let headers = [
-            "Authorization": "Bearer " + saveToken!
-        ]
-        print(headers)
-        Alamofire.request(url, method: .get, encoding: JSONEncoding.default, headers: headers).responseJSON {
-            response in
-            let dataJSON : Array<JSON> = [JSON(response.result.value!)]
-            if response.result.isSuccess {
-                print("sucess")
-                print(dataJSON)
-            } else {
-                print("errors")
-            }
-        }
     }
     
     func setSearchBar() {
@@ -76,11 +87,10 @@ class RegisterTableViewController: UITableViewController, UISearchBarDelegate {
 
     
     override func tableView(_ tableView: UITableView, cellForRowAt indexPath: IndexPath) -> UITableViewCell {
-        
         let cell = tableView.dequeueReusableCell(withIdentifier: "CellsLog", for: indexPath)
         cell.textLabel?.text = nomes[indexPath.row]
-        cell.detailTextLabel?.text = horario[indexPath.row] + " " + portas[indexPath.row]
-
+        cell.detailTextLabel?.text = horario[indexPath.row]
+        print (cell)
         return cell
     }
     

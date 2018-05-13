@@ -15,19 +15,50 @@ class ContactsTableViewController: UITableViewController, UISearchBarDelegate {
     @IBOutlet weak var searchBar: UISearchBar!
     @IBOutlet var table: UITableView!
     
-    var nomes: [String] = ["Tauan Marinho", "Tiago Maniane", "Luiz Kim", "Tiago Faxina"]
-    var Telefone: [String] = ["(41) 93923-0930", "(41) 93923-0930", "(41) 93923-0930", "(41) 93923-0930"]
+    var nomes: [String] = []
+    var telefone: [String] = []
+    var email: [String] = []
     
     let URL_CONTACTS: String = "https://portaeletronica-api.herokuapp.com/api/usuarios/estabelecimento"
-    let user = User()
     var confirmado:Int = 0
     var currentNomes = [String]()
 
     override func viewDidLoad() {
         super.viewDidLoad()
-        getData(url: URL_CONTACTS)
-        currentNomes = nomes
-        setSearchBar()
+        
+        let saveToken: String? = KeychainWrapper.standard.string(forKey: "tokenResult")
+        let headers = [
+            "Authorization": "Bearer " + saveToken!
+        ]
+        print("Enviado request")
+        Alamofire.request(URL_CONTACTS, method: .get, encoding: JSONEncoding.default, headers: headers).responseJSON {
+            response in
+            
+            if response.result.isSuccess {
+                print("sucess request")
+                if let value = response.result.value {
+                    let dataJSON = JSON(value)
+                    
+                    print(dataJSON)
+                    
+                    for x in 0..<dataJSON.count {
+                        self.nomes.append(dataJSON[x]["nome"].stringValue)
+                        self.telefone.append(dataJSON[x]["telefone"].stringValue)
+                        self.email.append(dataJSON[x]["email"].stringValue)
+                    }
+                    
+                    print("recebido e setado")
+                    
+                    //print(self.nomes)
+                    //print(self.horario)
+                    self.currentNomes = self.nomes
+                    self.setSearchBar()
+                    self.table.reloadData()
+                }
+            } else {
+                print("error request")
+            }
+        }
 
         // Uncomment the following line to preserve selection between presentations
         // self.clearsSelectionOnViewWillAppear = false
@@ -61,32 +92,6 @@ class ContactsTableViewController: UITableViewController, UISearchBarDelegate {
         return currentNomes.count
     }
     
-    func getData(url: String){
-        //let list: Array<JSON> = json["list"].arrayValue
-        let saveToken: String? = KeychainWrapper.standard.string(forKey: "tokenResult")
-        print(saveToken!)
-        let headers = [
-            "Authorization": "Bearer " + saveToken!
-        ]
-        print(headers)
-        Alamofire.request(url, method: .get, encoding: JSONEncoding.default, headers: headers).responseJSON {
-            response in
-            let dataJSON : Array<JSON> = [JSON(response.result.value!)]
-            if response.result.isSuccess {
-                print("sucess")
-                print(dataJSON)
-                
-                //print(dataJSON["telefone"].arrayValue)
-               
-                //print(dataJSON["nome"].arrayValue)
-               
-                
-            } else {
-                print("errors")
-            }
-        }
-    }
-    
     override func tableView(_ tableView: UITableView, cellForRowAt indexPath: IndexPath) -> UITableViewCell {
         
         let CelulaReuso = "CelulaReuso"
@@ -96,8 +101,7 @@ class ContactsTableViewController: UITableViewController, UISearchBarDelegate {
         cell.shareButton.tag = indexPath.row
         cell.shareButton.addTarget(self, action:#selector(callActions), for: .touchUpInside)
         cell.Label.text = nomes[indexPath.row]
-        cell.subLabel.text = Telefone[indexPath.row]
-        
+        cell.subLabel.text = telefone[indexPath.row] + " " + email[indexPath.row]
         
         return cell
     }
