@@ -54,15 +54,14 @@ class LoginViewController: UIViewController {
         
         Alamofire.request(url, method: .post, parameters: parameters, encoding: JSONEncoding.default).responseJSON {
             response in
-            let dataJSON : JSON = JSON(response.result.value!)
-            
             if response.result.isSuccess {
+                let dataJSON : JSON = JSON(response.result.value!)
                 print("sucess")
                 print(dataJSON)
                 self.acesso = self.updateToken(json: dataJSON)
             } else {
                 print("Error \(String(describing: response.result.error))")
-                self.statusConnection = "Connection issues"
+                self.statusConnection = "Erro de conexão"
                 self.actionLogin(mensagem: self.statusConnection)
             }
         }

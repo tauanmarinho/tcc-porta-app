@@ -53,6 +53,7 @@ class RegisterTableViewController: UITableViewController, UISearchBarDelegate {
                     self.table.reloadData()
                 }
             } else {
+                self.actionLogin(mensagem: "Problemas de conexão")
                 print("error request")
             }
         }
@@ -106,6 +107,17 @@ class RegisterTableViewController: UITableViewController, UISearchBarDelegate {
             nome.lowercased().contains(searchText.lowercased())  
         })
         table.reloadData()
+    }
+    
+    func actionLogin(mensagem: String){
+        let alerta = UIAlertController(title: "Erro", message: mensagem, preferredStyle: .alert)
+        
+        let confirmar = UIAlertAction(title: "Ok", style: .default) { (acao) in
+            NSLog("ok")
+        }
+        
+        alerta.addAction(confirmar)
+        present(alerta, animated: true, completion: nil)
     }
    
     
