@@ -15,7 +15,7 @@ import SwiftKeychainWrapper
 class LoginViewController: UIViewController {
     
     let URL_LOGIN: String = "https://portaeletronica-api.herokuapp.com/token/usuario"
-
+    
     @IBOutlet weak var emailTextField: UITextField!
     @IBOutlet weak var passwordTextField: UITextField!
     let user = User()
@@ -45,13 +45,13 @@ class LoginViewController: UIViewController {
         let confirmar = UIAlertAction(title: "Ok", style: .default) { (acao) in
             NSLog("ok")
         }
-
+        
         alerta.addAction(confirmar)
         present(alerta, animated: true, completion: nil)
     }
     
     @IBAction func loginUser(_ sender: Any) {
-    
+        
         user.userEmail = emailTextField.text!
         user.userKey = passwordTextField.text!
         var acesso:Bool = false
@@ -64,7 +64,7 @@ class LoginViewController: UIViewController {
             actionLogin(mensagem: "Insira seu e-mail")
             return
         }
-
+        
         parameters["senha"] = user.userKey
         
         Alamofire.request(URL_LOGIN, method: .post, parameters: parameters, encoding: JSONEncoding.default).responseJSON {
